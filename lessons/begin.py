@@ -34,4 +34,4 @@ def gestore(usr_name:str):
     time.sleep(5)
     res = cmd()
     if res == True:
-        award_user(usr_name, "inizio\n")
+        award_user(usr_name, "inizio")

@@ -93,11 +93,7 @@ try:
             OhSINT.gestore(username)
         elif cmd == "uni awards" and username != None:
             helpOut(f"Caricamento degli avanzamenti per l'utente {username}...")
-            usr_awards = get_user_awards(username)
-            if usr_awards:
-                print(f"\n{usr_awards}")
-            else:
-                print("Nessun award è stato trovato.")
+            get_user_awards(username)
             decode_commands()
         elif cmd == "uni awards remove" and username:
             delete_user_progress(username)

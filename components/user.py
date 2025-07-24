@@ -1,4 +1,4 @@
-import os, base64, random
+import os, base64, random, json
 from components.un1print import errorOut, helpOut
 
 def _log_usr_(usr:str,default_ip:str="0.0.0.0",password:str="None"):
@@ -67,55 +67,58 @@ def _decode_usr_():
         return None
     
 def get_awards_file_path() -> str:
-    return os.path.join(os.path.abspath(os.sep), "Users", os.getlogin(), "AppData", "Local", "Un1", "awards.un1")
+    return os.path.join(os.path.abspath(os.sep), "Users", os.getlogin(), "AppData", "Local", "Un1", "awards.json")
+
+def _load_awards() -> list:
+    """Returns the current medal list. (Empty if the file doesn't exist)"""
+    path = get_awards_file_path()
+    if not os.path.exists(path):
+        return []
+    try:
+        with open(path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            return data.get("medals", [])
+    except (json.JSONDecodeError, IOError):
+        return []
+
+def _save_awards(medals:list):
+    """Writes medal list on the disk."""
+    path = get_awards_file_path()
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, 'w', encoding='utf-8') as f:
+        json.dump({"medals": medals}, f, indent=2, ensure_ascii=False)
+
 
 def award_user(user_name: str, medal: str):
-    file_path = get_awards_file_path()
-    os.makedirs(os.path.dirname(file_path), exist_ok=True)
-
-    # Evita duplicati
-    current_awards = set()
-    if os.path.exists(file_path):
-        with open(file_path, 'r') as f:
-            current_awards = set([line.strip() for line in f.readlines()])
-
-    if medal in current_awards:
-        helpOut(f"{user_name}, hai già questa medaglia: {medal}.")
+    medals = _load_awards()
+    if medal in medals:
+        helpOut(f"{user_name}, hai già questa medaglia <{medal}>")
         return False
 
-    with open(file_path, 'a') as f:
-        f.write(medal + '\n')
-
-    helpOut(f"BRAVO {user_name}! Hai ottenuto una nuova medaglia: {medal}!")
+    medals.append(medal)
+    _save_awards(medals)
+    helpOut(f"Complimenti {user_name}! Hai ottenuto una nuova medaglia: {medal}.")
     return True
 
-def delete_user_progress(user_name: str):
-    file_path = get_awards_file_path()
-    errorOut(f"Sei sicuro di voler eliminare il tuo progresso, {user_name}?")
-    
+def delete_user_progress(user_name: str) -> bool:
+    errorOut(f"Sicuro di voler eliminare TUTTI I TUOI PROGRESSI IN-APP, {user_name}?")
     while True:
-        io = input("(si o no o s/n) >> ").strip().lower()
-        if io in ["si", "s"]:
-            with open(file_path, 'w') as f:
-                f.write("")
-            helpOut("Progresso eliminato correttamente.")
+        choice = input("(si/no) >> ").strip().lower()
+        if choice in {"si", "s"}:
+            _save_awards([])
+            helpOut("Progressi eliminati correttamente.")
             return True
-        elif io in ["no", "n"]:
-            helpOut("Ok, nessuna modifica fatta.")
+        elif choice in {"no", "n"}:
+            helpOut("Ok, non lo cancello più adesso.")
             return False
         else:
-            errorOut("Risposta non valida. Scrivi 'si' o 'no'.")
+            errorOut("Risposta non valida, digita 'si' o 'no'.")
 
 def get_user_awards(user_name: str):
-    file_path = get_awards_file_path()
-
-    if not os.path.exists(file_path):
+    medals = _load_awards()
+    if not medals:
+        helpOut(f"{user_name}, non hai ancora ottenuto alcuna medaglia. Completa delle sfide e le otterrai.")
         return False, [], []
-
-    try:
-        with open(file_path, 'r') as f:
-            lines = [line.strip() for line in f if line.strip()]
-            return lines[:1], lines[1:2]
-    except Exception as e:
-        errorOut(f"Errore durante la lettura dei premi: {e}")
-        return False
+    f = medals[0] if len(medals) > 0 else None
+    s = medals[1] if len(medals) > 1 else None
+    return True, f, s

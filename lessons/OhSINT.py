@@ -72,7 +72,7 @@ def get_are_all_asked(user_name: str):
     while True:
         if all(q in domande_risposte for q in ["1", "2", "3", "4", "5"]):
             print(Fore.GREEN + "\nHai risposto a tutte le domande! Ottimo lavoro!" + Fore.RESET)
-            award_user(user_name, "ohsint\n")
+            award_user(user_name, "osintEasyLevel")
             time.sleep(4)
             restart()
             break
