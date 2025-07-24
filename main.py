@@ -1,6 +1,6 @@
 import os, subprocess
 from components.un1print import errorOut, helpOut, normalOut, restart, loading_anim, initial_logo, input_anim
-from components.user import check_usr, _log_usr_, _get_cached_usr_, _decode_usr_
+from components.user import check_usr, _log_usr_, _get_cached_usr_, _decode_usr_, get_user_awards, delete_user_progress
 from components.network import _get_loc_ip_, uni_connect
 from lessons import begin, OhSINT
 
@@ -91,11 +91,22 @@ try:
             decode_commands()
         elif cmd == "uni lesson 2" and username != None:
             OhSINT.gestore(username)
+        elif cmd == "uni awards" and username != None:
+            helpOut(f"Caricamento degli avanzamenti per l'utente {username}...")
+            usr_awards = get_user_awards(username)
+            if usr_awards:
+                print(f"\n{usr_awards}")
+            else:
+                print("Nessun award è stato trovato.")
+            decode_commands()
+        elif cmd == "uni awards remove" and username:
+            delete_user_progress(username)
+            decode_commands()
         else:
             if username == None:
-                errorOut("You have no permission! (error 403)")
+                errorOut("Non hai il permesso!! (error 403)")
             else:
-                errorOut("What? Can you type something serious?")
+                errorOut("Puoi scrivere qualcosa di serio???")
             decode_commands()
             
     decode_commands()

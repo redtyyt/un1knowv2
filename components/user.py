@@ -66,25 +66,56 @@ def _decode_usr_():
     except FileNotFoundError:
         return None
     
-def award_user(user_name:str, medal:str):
+def get_awards_file_path() -> str:
+    return os.path.join(os.path.abspath(os.sep), "Users", os.getlogin(), "AppData", "Local", "Un1", "awards.un1")
+
+def award_user(user_name: str, medal: str):
+    file_path = get_awards_file_path()
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
+    # Evita duplicati
+    current_awards = set()
+    if os.path.exists(file_path):
+        with open(file_path, 'r') as f:
+            current_awards = set([line.strip() for line in f.readlines()])
+
+    if medal in current_awards:
+        helpOut(f"{user_name}, hai già questa medaglia: {medal}.")
+        return False
+
+    with open(file_path, 'a') as f:
+        f.write(medal + '\n')
+
     helpOut(f"BRAVO {user_name}! Hai ottenuto una nuova medaglia: {medal}!")
-    usr_ref = os.path.join(os.path.abspath(os.sep), "Users", os.getlogin(), "AppData", "Local", "Un1", "awards.un1")
-    f = open(usr_ref, 'a')
-    f.write(medal)
-    f.close()
     return True
 
-def delete_user_progress(user_name:str):
-    errorOut(f"Sei sicuro di eliminare il tuo progresso {user_name}?")
-    io = input("(si o no o s/n) >> ")
-    if io == "si" or io == "s":
-        usr_ref = os.path.join(os.path.abspath(os.sep), "Users", os.getlogin(), "AppData", "Local", "Un1", "awards.un1")
-        f = open(usr_ref, 'w')
-        f.write("")
-        f.close()
-        return True
-    if io == "no" or io == "n":
-        helpOut("Ok sei a posto.")
+def delete_user_progress(user_name: str):
+    file_path = get_awards_file_path()
+    errorOut(f"Sei sicuro di voler eliminare il tuo progresso, {user_name}?")
+    
+    while True:
+        io = input("(si o no o s/n) >> ").strip().lower()
+        if io in ["si", "s"]:
+            with open(file_path, 'w') as f:
+                f.write("")
+            helpOut("Progresso eliminato correttamente.")
+            return True
+        elif io in ["no", "n"]:
+            helpOut("Ok, nessuna modifica fatta.")
+            return False
+        else:
+            errorOut("Risposta non valida. Scrivi 'si' o 'no'.")
+
+def get_user_awards(user_name: str):
+    file_path = get_awards_file_path()
+
+    if not os.path.exists(file_path):
+        return False, [], []
+
+    try:
+        with open(file_path, 'r') as f:
+            lines = [line.strip() for line in f if line.strip()]
+            return lines[:1], lines[1:2]
+    except Exception as e:
+        errorOut(f"Errore durante la lettura dei premi: {e}")
         return False
-    else:
-        errorOut("Cosa? Puoi rispondere")

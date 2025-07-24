@@ -19,7 +19,7 @@ def cmd():
                 print("""Mode         LastWriteTime     Length  Name
                       ____         _____________     ______  ____
                       a----     32/06/2025   10:00      2    hello.txt""")
-                
+            command = prompt("PS C:\\Users\\Computer\\Desktop> ")    
             if command == "cat hello.txt":
                 print("\nciao!\n")
                 print("Esatto! Proprio così. Sei riuscito a trovare il contenuto del file tramite il comando 'cat'. Ricordatelo per le prossime sfide!")
@@ -34,4 +34,4 @@ def gestore(usr_name:str):
     time.sleep(5)
     res = cmd()
     if res == True:
-        award_user(usr_name, "inizio")
+        award_user(usr_name, "inizio\n")
